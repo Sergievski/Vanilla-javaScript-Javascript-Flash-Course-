@@ -53,9 +53,49 @@ setInterval(function () {
     .padStart(2, "0");
 }, 1000);
 
-// <span data-time="hours" class="time-number">08</span>
+// Gallery Section
+// <img src="/assets/gallery/image1.jpg" alt="image 1">
 
+const galleryImages = [
+  {
+    src: "./assets/gallery/image1.jpg",
+    alt: "Thumbnail Image 1",
+  },
+  {
+    src: "./assets/gallery/image2.jpg",
+    alt: "Thumbnail Image 2",
+  },
+  {
+    src: "./assets/gallery/image3.jpg",
+    alt: "Thumbnail Image 3",
+  },
+];
 
-for () {
-  
-}
+let mainImage = document.querySelector("#gallery > img");
+let thumbnails = document.querySelector("#gallery .thumbnails");
+
+mainImage.src = galleryImages[0].src;
+mainImage.alt = galleryImages[0].alt;
+
+galleryImages.forEach(function (image, index) {
+  let thumb = document.createElement("img");
+  thumb.src = image.src;
+  thumb.alt = image.alt;
+  thumb.dataset.arrayIndex = index;
+  thumb.dataset.selected = index === 0 ? true : false;
+
+  thumb.addEventListener("click", function (e) {
+    let selectedIndex = e.target.dataset.arrayIndex;
+    let selectedImage = galleryImages[selectedIndex];
+    mainImage.src = selectedImage.src;
+    mainImage.alt = selectedImage.alt;
+
+    thumbnails.querySelectorAll("img").forEach(function (img) {
+      img.dataset.selected = false;
+
+      e.target.dataset.selected = true;
+    });
+  });
+
+  thumbnails.appendChild(thumb);
+});
