@@ -1,3 +1,5 @@
+const weatherAPIKey = "62f71e5ef835c76a374dfdf1517ee35b";
+const weatherAPIURL = `https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&exclude={part}&appid={API key}`;
 // Menu Section
 
 const galleryImages = [
@@ -94,28 +96,50 @@ function greetingHandler() {
     greetingText = "Welcome!";
   }
 
-  const weatherCondition = "Sunny";
-  const userLocation = "New York";
-  let temperature = 23.8673;
-  let celsiusText = `The weather is ${weatherCondition} in ${userLocation} and it's ${temperature.toFixed(
-    1
-  )}°C outside.`;
-  let fahrText = `The weather is ${weatherCondition} in ${userLocation} and it's ${celsiusToFahr(
-    temperature
-  ).toFixed(1)}°F outside.`;
-
   document.querySelector("#greeting").innerHTML = greetingText;
-  document.querySelector("p#weather").innerHTML = celsiusText;
+}
 
-  document
-    .querySelector(".weather-group")
-    .addEventListener("click", function (e) {
-      if (e.target.id === "celsius") {
+// Weather Text
+
+function weatherHandler() {
+  navigator.geolocation.getCurrentPosition((position) => {
+    let latitude = position.coords.latitude;
+    let longitude = position.coords.longitude;
+    let url = weatherAPIURL
+      .replace("{lat}", latitude)
+      .replace("{lon}", longitude)
+      .replace("{API key}", weatherAPIKey);
+    fetch(url)
+      .then((response) => response.json())
+      .then((data) => {
+        const condition = data.weather[0].description;
+        const location = data.name;
+        const temperature = data.main.temp;
+
+        let celsiusText = `The weather is ${condition} in ${location} and it's ${temperature.toFixed(
+          1
+        )}°C outside.`;
+        let fahrText = `The weather is ${condition} in ${location} and it's ${celsiusToFahr(
+          temperature
+        ).toFixed(1)}°F outside.`;
+
         document.querySelector("p#weather").innerHTML = celsiusText;
-      } else if (e.target.id === "fahr") {
-        document.querySelector("p#weather").innerHTML = fahrText;
+
+        document
+          .querySelector(".weather-group")
+          .addEventListener("click", function (e) {
+            if (e.target.id === "celsius") {
+              document.querySelector("p#weather").innerHTML = celsiusText;
+            } else if (e.target.id === "fahr") {
+              document.querySelector("p#weather").innerHTML = fahrText;
+            }
+          });
+      }).catch(err => {
+        document.querySelector("p#weather").innerHTML = "Unable to get the weather info. Try again later"
       }
-    });
+
+      }
+  });
 }
 
 // Local Time Section
@@ -173,17 +197,12 @@ function galleryHandler() {
 
 // Products Section
 
-function productsHandler() {
+function populateProducts(productList) {
   let productsSection = document.querySelector(".products-area");
-  let freeProducts = products.filter(function (item) {
-    return item.price === 0;
-  });
-  let paidProducts = products.filter(function (item) {
-    return item.price > 0;
-  });
+  productsSection.textContent = "";
 
   // Run a loop through the products and create an HTML element ("product-item") for each of them
-  products.forEach(function (product, index) {
+  productList.forEach(function (product, index) {
     // Create the HTML element for the individual product
     let productElement = document.createElement("div");
     productElement.classList.add("product-item");
@@ -228,6 +247,15 @@ function productsHandler() {
     // Add the complete individual product to the product section
     productsSection.append(productElement);
   });
+}
+
+function productsHandler() {
+  let freeProducts = products.filter((item) => item.price === 0);
+  let paidProducts = products.filter((item) => {
+    return item.price > 0;
+  });
+
+  populateProducts(products);
 
   document.querySelector(
     ".products-filter label[for=all] span.product-amount"
@@ -240,12 +268,24 @@ function productsHandler() {
   document.querySelector(
     ".products-filter label[for=free] span.product-amount"
   ).textContent = freeProducts.length;
+
+  let productsFilter = document.querySelector(".products-filter");
+  productsFilter.addEventListener("click", function (e) {
+    if (e.target.id === "all") {
+      populateProducts(products);
+    } else if (e.target.id === "paid") {
+      populateProducts(paidProducts);
+    } else if (e.target.id === "free") {
+      populateProducts(freeProducts);
+    }
+  });
 }
 
 //Page load
 
 menuHandler();
 greetingHandler();
+weatherHandler();
 clockHandler();
 galleryHandler();
 productsHandler();
